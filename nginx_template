@@ -7,8 +7,8 @@ server {
 	# SSL configuration
 	listen 443 ssl default_server;
 
-	ssl_certificate /etc/letsencrypt/live/#SUBDOMAIN/fullchain.pem;
-	ssl_certificate_key /etc/letsencrypt/live/#SUBDOMAIN/privkey.pem;
+	ssl_certificate /etc/letsencrypt/live/%SUBDOMAIN%/fullchain.pem;
+	ssl_certificate_key /etc/letsencrypt/live/%SUBDOMAIN%/privkey.pem;
 
 	include /etc/letsencrypt/options-ssl-nginx.conf;
 

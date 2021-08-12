@@ -1,44 +1,30 @@
-# TODO this script should check if IP has changed: if so, update cloudflare DDNS
-
-# This script should also check when the local cert expires, and if so, renew.
-
-
 #!/bin/bash
 
-auth_email=""                                      # The email used to login 'https://dash.cloudflare.com'
-auth_method="token"                                # Set to "global" for Global API Key or "token" for Scoped API Token
-auth_key=""                                        # Your API Token or Global API Key
-zone_identifier=""                                 # Can be found in the "Overview" tab of your domain
-record_name=""                                     # Which record you want to be synced
-proxy=false                                        # Set the proxy to true or false
-
-
+auth_key="%TOKEN%"           # Your API Token or Global API Key
+zone_identifier="%ZONE%"     # Can be found in the "Overview" tab of your domain
+record_name="%SUBDOMAIN%"    # Which record you want to be synced
+interface="%INTERFACE%"      # Interface to get local IP from
 
 ###########################################
-## Check if we have a public IP
+## Get local interface IP
 ###########################################
-ip=$(curl -s https://api.ipify.org || curl -s https://ipv4.icanhazip.com/)
-
-if [ "${ip}" == "" ]; then
-  logger -s "DDNS Updater: No public IP found"
+if [ "${interface}" == "" ]; then
+  logger -s "Interface does not exist"
   exit 1
 fi
 
-###########################################
-## Check and set the proper auth header
-###########################################
-if [ "${auth_method}" == "global" ]; then
-  auth_header="X-Auth-Key:"
-else
-  auth_header="Authorization: Bearer"
+ip=$(ip -4 addr show ${interface} | grep -oP "(?<=inet ).*(?=/)")
+
+if [ "${ip}" == "" ]; then
+  logger -s "DDNS Updater: No IP found"
+  exit 1
 fi
 
 ###########################################
 ## Seek for the A record
 ###########################################
-
 logger "DDNS Updater: Check Initiated"
-record=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones/$zone_identifier/dns_records?name=$record_name" -H "X-Auth-Email: $auth_email" -H "$auth_header $auth_key" -H "Content-Type: application/json")
+record=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones/$zone_identifier/dns_records?name=$record_name" -H "Authorization: Bearer $auth_key" -H "Content-Type: application/json")
 
 ###########################################
 ## Check if the domain has an A record
@@ -67,10 +53,9 @@ record_identifier=$(echo "$record" | grep -Po '(?<="id":")[^"]*' | head -1)
 ## Change the IP@Cloudflare using the API
 ###########################################
 update=$(curl -s -X PUT "https://api.cloudflare.com/client/v4/zones/$zone_identifier/dns_records/$record_identifier" \
-                     -H "X-Auth-Email: $auth_email" \
-                     -H "$auth_header $auth_key" \
+                     -H "Authorization: Bearer $auth_key" \
                      -H "Content-Type: application/json" \
-              --data "{\"id\":\"$zone_identifier\",\"type\":\"A\",\"proxied\":${proxy},\"name\":\"$record_name\",\"content\":\"$ip\"}")
+              --data "{\"id\":\"$zone_identifier\",\"type\":\"A\",\"proxied\":false,\"name\":\"$record_name\",\"content\":\"$ip\"}")
 
 ###########################################
 ## Report the status
