@@ -8,3 +8,6 @@ cd local_ssl
 chmod +x install.sh
 sudo ./install.sh
 ```
+
+Note that this script was written for and tested on Raspberry Pi/Debian distributions.
+It may not work on other systems.
