@@ -40,7 +40,8 @@ chmod +x update.sh
 # Copy script to cron.d and add to crontab
 cp update.sh /usr/local/sbin/local_ssl_cloudflare_ddns_updater.sh
 touch /etc/cron.d/ddns_update
-echo "*/5 * * * * /usr/local/sbin/local_ssl_cloudflare_ddns_updater.sh" > /etc/cron.d/ddns_update
+echo "*/5 * * * * ${SUDO_USER} /usr/local/sbin/local_ssl_cloudflare_ddns_updater.sh" | \
+    sudo tee -a /etc/crontab > /dev/null
 
 # Fetch certificate with Certbot
 if [ "${EMAIL}" == "" ]; then
