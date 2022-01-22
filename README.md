@@ -3,7 +3,7 @@ Config/install script for setting up a linux server that can serve over HTTPS in
 
 ```bash
 cd ~
-git clone git@github.com:BOJIT/local_ssl.git
+git clone https://github.com/BOJIT/local_ssl.git
 cd local_ssl
 chmod +x install.sh
 sudo ./install.sh
